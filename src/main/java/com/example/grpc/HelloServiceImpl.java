@@ -4,9 +4,11 @@ import io.grpc.stub.StreamObserver;
 
 public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
 
+    private static final String[] GREETINGS = {"Hello", "Hi", "Hey", "Greetings", "Welcome"};
+
     @Override
     public void sayHello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
-        String message = "Hello, " + request.getName() + "!";
+        String message = "Hello, " + displayName(request) + "!";
         HelloResponse response = HelloResponse.newBuilder()
                 .setMessage(message)
                 .build();
@@ -16,10 +18,9 @@ public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void sayHelloServerStream(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
-        String name = request.getName();
-        String[] greetings = {"Hello", "Hi", "Hey", "Greetings", "Welcome"};
+        String name = displayName(request);
 
-        for (String greeting : greetings) {
+        for (String greeting : GREETINGS) {
             HelloResponse response = HelloResponse.newBuilder()
                     .setMessage(greeting + ", " + name + "!")
                     .build();
@@ -29,8 +30,15 @@ public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                responseObserver.onCompleted();
+                return;
             }
         }
         responseObserver.onCompleted();
+    }
+
+    private String displayName(HelloRequest request) {
+        String name = request.getName().trim();
+        return name.isEmpty() ? "friend" : name;
     }
 }

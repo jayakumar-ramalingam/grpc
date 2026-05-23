@@ -5,10 +5,13 @@ import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class HelloServer {
 
     private static final int PORT = 50051;
+    private static final Logger LOGGER = Logger.getLogger(HelloServer.class.getName());
     private Server server;
 
     public void start() throws IOException {
@@ -16,22 +19,26 @@ public class HelloServer {
                 .addService(new HelloServiceImpl())
                 .build()
                 .start();
-        System.out.println("Server started on port " + PORT);
+        LOGGER.info("Server started on port " + PORT);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Shutting down gRPC server...");
+            LOGGER.info("Shutting down gRPC server...");
             try {
                 HelloServer.this.stop();
             } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "Interrupted while shutting down server", e);
                 Thread.currentThread().interrupt();
             }
-            System.out.println("Server shut down.");
+            LOGGER.info("Server shut down.");
         }));
     }
 
     public void stop() throws InterruptedException {
         if (server != null) {
-            server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
+            server.shutdown();
+            if (!server.awaitTermination(30, TimeUnit.SECONDS)) {
+                server.shutdownNow();
+            }
         }
     }
 
