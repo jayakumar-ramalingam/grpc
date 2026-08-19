@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//grpc 
 public class HelloClient {
 
     private static final String HOST = "localhost";
